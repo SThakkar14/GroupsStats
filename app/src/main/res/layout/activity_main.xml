@@ -5,16 +5,19 @@
     tools:context=".MainActivity"
     android:orientation="vertical">
 
-    <fragment
-        android:id="@+id/selectionFragment"
-        android:name="com.me.shubham.groupsstats.SelectionFragment"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+    <com.facebook.widget.LoginButton
+        android:id="@+id/login_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginBottom="30dp"
+        android:layout_marginTop="30dp" />
 
-    <fragment
-        android:id="@+id/splashFragment"
-        android:name="com.me.shubham.groupsstats.SplashFragment"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="New Text"
+        android:id="@+id/textView"
+        android:layout_gravity="center_horizontal" />
 
 </LinearLayout>

@@ -1,31 +1,26 @@
 package com.me.shubham.groupsstats;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
-import android.support.v4.app.FragmentManager;
-import android.support.v4.app.FragmentTransaction;
 
 import com.facebook.AppEventsLogger;
 import com.facebook.Session;
 import com.facebook.SessionState;
 import com.facebook.UiLifecycleHelper;
+import com.facebook.widget.LoginButton;
 
+import java.util.Arrays;
 
-public class MainActivity extends FragmentActivity {
-    private static final int SPLASH = 0;
-    private static final int SELECTION = 1;
-    private static final int FRAGMENT_COUNT = SELECTION + 1;
+public class MainActivity extends Activity {
 
-    private Fragment[] fragments = new Fragment[FRAGMENT_COUNT];
     private Session.StatusCallback callback = new Session.StatusCallback() {
         @Override
         public void call(Session session, SessionState sessionState, Exception e) {
-            if (sessionState.isOpened())
-                showFragment(SELECTION);
-            else
-                showFragment(SPLASH);
+            if (session != null && sessionState.isOpened()) {
+                Intent intent = new Intent(MainActivity.this, ResultsPage.class);
+                startActivity(intent);
+            }
         }
     };
     private UiLifecycleHelper uiLifecycleHelper;
@@ -33,32 +28,13 @@ public class MainActivity extends FragmentActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
 
         uiLifecycleHelper = new UiLifecycleHelper(this, callback);
         uiLifecycleHelper.onCreate(savedInstanceState);
 
-        setContentView(R.layout.activity_main);
-
-        FragmentManager fm = getSupportFragmentManager();
-        fragments[SPLASH] = fm.findFragmentById(R.id.splashFragment);
-        fragments[SELECTION] = fm.findFragmentById(R.id.selectionFragment);
-
-        FragmentTransaction transaction = fm.beginTransaction();
-        for (Fragment fragment : fragments)
-            transaction.hide(fragment);
-        transaction.commit();
-    }
-
-    private void showFragment(int fragmentIndex) {
-        FragmentManager fm = getSupportFragmentManager();
-        FragmentTransaction transaction = fm.beginTransaction();
-        for (int i = 0; i < fragments.length; i++) {
-            if (i == fragmentIndex)
-                transaction.show(fragments[i]);
-            else
-                transaction.hide(fragments[i]);
-        }
-        transaction.commit();
+        LoginButton loginButton = (LoginButton) findViewById(R.id.login_button);
+        loginButton.setReadPermissions(Arrays.asList("user_groups", "user_location", "user_birthday", "user_likes"));
     }
 
     @Override
@@ -95,17 +71,6 @@ public class MainActivity extends FragmentActivity {
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
         uiLifecycleHelper.onSaveInstanceState(outState);
-    }
-
-    @Override
-    protected void onResumeFragments() {
-        super.onResumeFragments();
-        Session session = Session.getActiveSession();
-
-        if (session != null && session.isOpened())
-            showFragment(SELECTION);
-        else
-            showFragment(SPLASH);
     }
 
 }
