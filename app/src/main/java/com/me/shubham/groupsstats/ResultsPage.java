@@ -1,15 +1,16 @@
 package com.me.shubham.groupsstats;
 
-import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.os.Bundle;
+import android.support.v7.app.ActionBarActivity;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TableLayout;
-import android.widget.TextView;
+import android.widget.TableRow;
 
 import com.facebook.HttpMethod;
 import com.facebook.Request;
@@ -21,7 +22,20 @@ import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class ResultsPage extends Activity {
+public class ResultsPage extends ActionBarActivity {
+    public final static String GROUP_NAME = "com.me.shubham.groupStats.GROUP_NAME";
+    public View.OnClickListener groupsClickListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            TableRow tableRow = (TableRow) v.getParent();
+            Button button = (Button) tableRow.findViewById(R.id.button);
+            String groupName = button.getText().toString();
+
+            Intent intent = new Intent(ResultsPage.this, resultsDisplayPage.class);
+            intent.putExtra(GROUP_NAME, groupName);
+            startActivity(intent);
+        }
+    };
     private TableLayout groupsScrollView;
 
     @Override
@@ -29,7 +43,7 @@ public class ResultsPage extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_results_page);
 
-        groupsScrollView=(TableLayout) findViewById(R.id.tableLayout);
+        groupsScrollView = (TableLayout) findViewById(R.id.tableLayout);
 
         Request.newMeRequest(Session.getActiveSession(), new Request.GraphUserCallback() {
             @Override
@@ -57,7 +71,7 @@ public class ResultsPage extends Activity {
         }).executeAsync();
     }
 
-    private void createButton(String groupName){
+    private void createButton(String groupName) {
         LayoutInflater layoutInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View newGroupRow = layoutInflater.inflate(R.layout.group_table_row, null);
         Button groupNameButton = (Button) newGroupRow.findViewById(R.id.button);
@@ -65,14 +79,6 @@ public class ResultsPage extends Activity {
         groupNameButton.setOnClickListener(groupsClickListener);
         groupsScrollView.addView(newGroupRow);
     }
-
-    public View.OnClickListener groupsClickListener = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-
-        }
-    };
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

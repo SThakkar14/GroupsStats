@@ -31,6 +31,10 @@
             android:name=".ResultsPage"
             android:label="@string/title_activity_results_page" >
         </activity>
+        <activity
+            android:name=".resultsDisplayPage"
+            android:label="@string/title_activity_results_display_page" >
+        </activity>
     </application>
 
 </manifest>

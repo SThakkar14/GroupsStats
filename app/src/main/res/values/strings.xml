@@ -7,5 +7,6 @@
     <string name="facebook_app_id">890566747633734</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_results_page">ResultsPage</string>
+    <string name="title_activity_results_display_page">resultsDisplayPage</string>
 
 </resources>
