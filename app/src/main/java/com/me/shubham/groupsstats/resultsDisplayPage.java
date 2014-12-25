@@ -7,7 +7,26 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.TextView;
 
+import com.facebook.HttpMethod;
+import com.facebook.Request;
+import com.facebook.Response;
+import com.facebook.Session;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ExecutionException;
+
 public class resultsDisplayPage extends ActionBarActivity {
+
+    public String groupID;
+    HashMap<String, Integer> likesMap;
+    HashMap<String, Integer> commentsMap;
+    TextView textView;
+    String str;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -15,9 +34,86 @@ public class resultsDisplayPage extends ActionBarActivity {
         setContentView(R.layout.activity_results_display_page);
 
         Intent intent = getIntent();
-        String groupName = intent.getStringExtra(ResultsPage.GROUP_NAME);
-        TextView textView = (TextView) findViewById(R.id.WhatWhat);
-        textView.setText(groupName);
+        groupID = intent.getStringExtra(ResultsPage.GROUP_ID);
+
+        textView = (TextView) findViewById(R.id.WhatWhat);
+
+        likesMap = new HashMap<>();
+        likesMap = new HashMap<>();
+
+        getFeed();
+
+        StringBuilder sb = new StringBuilder();
+        for (Map.Entry<String, Integer> entry : likesMap.entrySet()) {
+            sb.append(entry.getKey()).append(" ").append(entry.getValue());
+        }
+        textView.setText(sb.toString());
+    }
+
+    private void getFeed() {
+        try {
+            new Request(Session.getActiveSession(), (groupID + "/feed"), null, HttpMethod.GET, new Request.Callback() {
+                @Override
+                public void onCompleted(Response response) {
+                    if (response != null) {
+                        str = "done";
+                        processResponse(response);
+                    }
+                }
+            }).executeAsync().get();
+        } catch (InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void processResponse(Response response) {
+        JSONObject allData = response.getGraphObject().getInnerJSONObject();
+        try {
+            JSONArray listOfPosts = allData.getJSONArray("data");
+            for (int postNum = 0; postNum < listOfPosts.length(); postNum++) {
+                JSONObject currentPost = listOfPosts.getJSONObject(postNum);
+                getData(currentPost);
+            }
+
+            Request next = response.getRequestForPagedResults(Response.PagingDirection.NEXT);
+            if (next != null) {
+                next.setCallback(new Request.Callback() {
+                    @Override
+                    public void onCompleted(Response newresponse) {
+                        processResponse(newresponse);
+                    }
+                });
+                next.executeAsync().get();
+            }
+        } catch (JSONException | InterruptedException | ExecutionException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void getData(JSONObject currentPost) {
+        getField(currentPost, "likes", likesMap);
+        getField(currentPost, "comments", commentsMap);
+    }
+
+    private void getField(JSONObject currentPost, String field, HashMap<String, Integer> map) {
+        try {
+            JSONObject currentField = currentPost.getJSONObject(field);
+            if (currentField != null) {
+                JSONArray currentArray = currentField.getJSONArray("data");
+
+                for (int numPerson = 0; numPerson < currentArray.length(); numPerson++) {
+                    JSONObject person = currentArray.getJSONObject(numPerson);
+                    String personName = person.get("name").toString();
+
+                    if (map.get(personName) == null)
+                        map.put(personName, 1);
+                    else
+                        map.put(personName, map.get(personName) + 1);
+                }
+            }
+        } catch (JSONException ignored) {
+
+        }
     }
 
     @Override

@@ -23,16 +23,16 @@ import org.json.JSONException;
 import org.json.JSONObject;
 
 public class ResultsPage extends ActionBarActivity {
-    public final static String GROUP_NAME = "com.me.shubham.groupStats.GROUP_NAME";
+    public final static String GROUP_ID = "com.me.shubham.groupStats.GROUP_NAME";
+
     public View.OnClickListener groupsClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             TableRow tableRow = (TableRow) v.getParent();
             Button button = (Button) tableRow.findViewById(R.id.button);
-            String groupName = button.getText().toString();
 
             Intent intent = new Intent(ResultsPage.this, resultsDisplayPage.class);
-            intent.putExtra(GROUP_NAME, groupName);
+            intent.putExtra(GROUP_ID, (String) tableRow.getTag());
             startActivity(intent);
         }
     };
@@ -62,7 +62,7 @@ public class ResultsPage extends ActionBarActivity {
                     JSONArray array = jsonObject.getJSONArray("data");
                     for (int i = 0; i < array.length(); i++) {
                         JSONObject thing = array.getJSONObject(i);
-                        createButton(thing.get("name").toString());
+                        createButton(thing.get("name").toString(), thing.get("id").toString());
                     }
                 } catch (JSONException e) {
                     e.printStackTrace();
@@ -71,12 +71,14 @@ public class ResultsPage extends ActionBarActivity {
         }).executeAsync();
     }
 
-    private void createButton(String groupName) {
+    private void createButton(String groupName, String groupID) {
         LayoutInflater layoutInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View newGroupRow = layoutInflater.inflate(R.layout.group_table_row, null);
         Button groupNameButton = (Button) newGroupRow.findViewById(R.id.button);
         groupNameButton.setText(groupName);
         groupNameButton.setOnClickListener(groupsClickListener);
+
+        newGroupRow.setTag(groupID);
         groupsScrollView.addView(newGroupRow);
     }
 
