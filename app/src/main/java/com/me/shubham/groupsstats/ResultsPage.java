@@ -24,12 +24,13 @@ import org.json.JSONObject;
 
 public class ResultsPage extends ActionBarActivity {
     public final static String GROUP_ID = "com.me.shubham.groupStats.GROUP_NAME";
+    Button button;
 
     public View.OnClickListener groupsClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             TableRow tableRow = (TableRow) v.getParent();
-            Button button = (Button) tableRow.findViewById(R.id.button);
+            button = (Button) tableRow.findViewById(R.id.button);
 
             Intent intent = new Intent(ResultsPage.this, resultsDisplayPage.class);
             intent.putExtra(GROUP_ID, (String) tableRow.getTag());

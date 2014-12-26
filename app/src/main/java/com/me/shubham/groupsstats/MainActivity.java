@@ -34,7 +34,7 @@ public class MainActivity extends Activity {
         uiLifecycleHelper.onCreate(savedInstanceState);
 
         LoginButton loginButton = (LoginButton) findViewById(R.id.login_button);
-        loginButton.setReadPermissions(Arrays.asList("user_groups", "user_birthday", "user_likes"));
+        loginButton.setReadPermissions(Arrays.asList("user_groups", "user_birthday", "user_likes", "user_about_me", "user_activities"));
     }
 
     @Override

@@ -11,6 +11,7 @@ import com.facebook.HttpMethod;
 import com.facebook.Request;
 import com.facebook.Response;
 import com.facebook.Session;
+import com.facebook.model.GraphObject;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -26,7 +27,6 @@ public class resultsDisplayPage extends ActionBarActivity {
     HashMap<String, Integer> likesMap;
     HashMap<String, Integer> commentsMap;
     TextView textView;
-    String str;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,12 +52,17 @@ public class resultsDisplayPage extends ActionBarActivity {
 
     private void getFeed() {
         try {
-            new Request(Session.getActiveSession(), (groupID + "/feed"), null, HttpMethod.GET, new Request.Callback() {
+            Bundle parameters = new Bundle();
+            parameters.putString("limit", "100");
+            parameters.putString("since", "1");
+
+            new Request(Session.getActiveSession(), (groupID + "/feed"), parameters, HttpMethod.GET, new Request.Callback() {
                 @Override
                 public void onCompleted(Response response) {
                     if (response != null) {
-                        str = "done";
                         processResponse(response);
+
+
                     }
                 }
             }).executeAsync().get();
@@ -67,26 +72,30 @@ public class resultsDisplayPage extends ActionBarActivity {
     }
 
     private void processResponse(Response response) {
-        JSONObject allData = response.getGraphObject().getInnerJSONObject();
-        try {
-            JSONArray listOfPosts = allData.getJSONArray("data");
-            for (int postNum = 0; postNum < listOfPosts.length(); postNum++) {
-                JSONObject currentPost = listOfPosts.getJSONObject(postNum);
-                getData(currentPost);
-            }
+        GraphObject allDataGraphObject = response.getGraphObject();
+        if (allDataGraphObject != null) {
+            try {
+                JSONObject allData = allDataGraphObject.getInnerJSONObject();
+                JSONArray listOfPosts = allData.getJSONArray("data");
+                for (int postNum = 0; postNum < listOfPosts.length(); postNum++) {
+                    JSONObject currentPost = listOfPosts.getJSONObject(postNum);
+                    getData(currentPost);
+                }
 
-            Request next = response.getRequestForPagedResults(Response.PagingDirection.NEXT);
-            if (next != null) {
-                next.setCallback(new Request.Callback() {
-                    @Override
-                    public void onCompleted(Response newresponse) {
-                        processResponse(newresponse);
-                    }
-                });
-                next.executeAsync().get();
+                Request next = response.getRequestForPagedResults(Response.PagingDirection.NEXT);
+                if (next != null) {
+                    next.setCallback(new Request.Callback() {
+                        @Override
+                        public void onCompleted(Response newresponse) {
+                            if (newresponse != null)
+                                processResponse(newresponse);
+                        }
+                    });
+                    next.executeAsync().get();
+                }
+            } catch (JSONException | InterruptedException | ExecutionException e) {
+                e.printStackTrace();
             }
-        } catch (JSONException | InterruptedException | ExecutionException e) {
-            e.printStackTrace();
         }
     }
 
