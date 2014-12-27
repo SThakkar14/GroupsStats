@@ -3,6 +3,7 @@ package com.me.shubham.groupsstats;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 
 import com.facebook.AppEventsLogger;
 import com.facebook.Session;
@@ -12,14 +13,15 @@ import com.facebook.widget.LoginButton;
 
 import java.util.Arrays;
 
-public class MainActivity extends Activity {
+public class LoginPage extends Activity {
 
     private Session.StatusCallback callback = new Session.StatusCallback() {
         @Override
         public void call(Session session, SessionState sessionState, Exception e) {
             if (session != null && sessionState.isOpened()) {
-                Intent intent = new Intent(MainActivity.this, ResultsPage.class);
+                Intent intent = new Intent(LoginPage.this, GroupsDisplayPage.class);
                 startActivity(intent);
+                finish();
             }
         }
     };
@@ -34,7 +36,7 @@ public class MainActivity extends Activity {
         uiLifecycleHelper.onCreate(savedInstanceState);
 
         LoginButton loginButton = (LoginButton) findViewById(R.id.login_button);
-        loginButton.setReadPermissions(Arrays.asList("user_groups", "user_birthday", "user_likes", "user_about_me", "user_activities"));
+        loginButton.setReadPermissions(Arrays.asList("user_groups", "user_about_me"));
     }
 
     @Override
@@ -68,7 +70,7 @@ public class MainActivity extends Activity {
     }
 
     @Override
-    protected void onSaveInstanceState(Bundle outState) {
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         uiLifecycleHelper.onSaveInstanceState(outState);
     }

@@ -1,5 +1,6 @@
 package com.me.shubham.groupsstats;
 
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
@@ -16,35 +17,38 @@ import com.facebook.HttpMethod;
 import com.facebook.Request;
 import com.facebook.Response;
 import com.facebook.Session;
+import com.facebook.model.GraphObject;
 import com.facebook.model.GraphUser;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-public class ResultsPage extends ActionBarActivity {
-    public final static String GROUP_ID = "com.me.shubham.groupStats.GROUP_NAME";
-    Button button;
+public class GroupsDisplayPage extends ActionBarActivity {
 
     public View.OnClickListener groupsClickListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             TableRow tableRow = (TableRow) v.getParent();
-            button = (Button) tableRow.findViewById(R.id.button);
 
-            Intent intent = new Intent(ResultsPage.this, resultsDisplayPage.class);
-            intent.putExtra(GROUP_ID, (String) tableRow.getTag());
+            Intent intent = new Intent(GroupsDisplayPage.this, resultsDisplayPage.class);
+            intent.putExtra("groupID", tableRow.getTag().toString());
             startActivity(intent);
         }
     };
-    private TableLayout groupsScrollView;
+    ProgressDialog loadingDialog;
+    private TableLayout groupsTableLayout;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_results_page);
 
-        groupsScrollView = (TableLayout) findViewById(R.id.tableLayout);
+        groupsTableLayout = (TableLayout) findViewById(R.id.tableLayout);
+
+        loadingDialog = new ProgressDialog(GroupsDisplayPage.this);
+        loadingDialog.setMessage("Getting Groups...");
+        loadingDialog.show();
 
         Request.newMeRequest(Session.getActiveSession(), new Request.GraphUserCallback() {
             @Override
@@ -55,19 +59,28 @@ public class ResultsPage extends ActionBarActivity {
     }
 
     private void getGroups() {
-        new Request(Session.getActiveSession(), "/me/groups", null, HttpMethod.GET, new Request.Callback() {
+
+        Bundle parameters = new Bundle();
+        parameters.putString("fields", "id,name");
+
+        new Request(Session.getActiveSession(), "/me/groups", parameters, HttpMethod.GET, new Request.Callback() {
             @Override
             public void onCompleted(Response response) {
-                JSONObject jsonObject = response.getGraphObject().getInnerJSONObject();
-                try {
-                    JSONArray array = jsonObject.getJSONArray("data");
-                    for (int i = 0; i < array.length(); i++) {
-                        JSONObject thing = array.getJSONObject(i);
-                        createButton(thing.get("name").toString(), thing.get("id").toString());
+                if (response != null) {
+                    GraphObject innerGraphObject = response.getGraphObject();
+                    if (innerGraphObject != null) {
+                        JSONObject innerObject = innerGraphObject.getInnerJSONObject();
+                        try {
+                            JSONArray listOfGroups = innerObject.getJSONArray("data");
+                            for (int numGroup = 0; numGroup < listOfGroups.length(); numGroup++) {
+                                JSONObject group = listOfGroups.getJSONObject(numGroup);
+                                createButton(group.get("name").toString(), group.get("id").toString());
+                            }
+                        } catch (JSONException ignored) {
+                        }
                     }
-                } catch (JSONException e) {
-                    e.printStackTrace();
                 }
+                loadingDialog.dismiss();
             }
         }).executeAsync();
     }
@@ -75,12 +88,13 @@ public class ResultsPage extends ActionBarActivity {
     private void createButton(String groupName, String groupID) {
         LayoutInflater layoutInflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         View newGroupRow = layoutInflater.inflate(R.layout.group_table_row, null);
+
         Button groupNameButton = (Button) newGroupRow.findViewById(R.id.button);
         groupNameButton.setText(groupName);
-        groupNameButton.setOnClickListener(groupsClickListener);
-
         newGroupRow.setTag(groupID);
-        groupsScrollView.addView(newGroupRow);
+        groupsTableLayout.addView(newGroupRow);
+
+        groupNameButton.setOnClickListener(groupsClickListener);
     }
 
     @Override

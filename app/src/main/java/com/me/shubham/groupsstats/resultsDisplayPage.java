@@ -5,28 +5,35 @@ import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.TextView;
-
-import com.facebook.HttpMethod;
-import com.facebook.Request;
-import com.facebook.Response;
-import com.facebook.Session;
-import com.facebook.model.GraphObject;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.ExecutionException;
+import android.view.View;
+import android.widget.Button;
 
 public class resultsDisplayPage extends ActionBarActivity {
 
-    public String groupID;
-    HashMap<String, Integer> likesMap;
-    HashMap<String, Integer> commentsMap;
-    TextView textView;
+    Button likesButton;
+    Button commentsButton;
+
+    String groupID;
+
+    private View.OnClickListener likesListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            Intent intent = new Intent(resultsDisplayPage.this, LikesOutput.class);
+            intent.putExtra("groupID", groupID);
+            intent.putExtra("fields", "likes");
+            startActivity(intent);
+        }
+    };
+
+    /*private View.OnClickListener commentsListener = new View.OnClickListener() {
+        @Override
+        public void onClick(View v) {
+            Intent intent = new Intent(resultsDisplayPage.this, CommentsOutput.class);
+            intent.putExtra("groupID", groupID);
+            intent.putExtra("fields", "comments");
+            startActivity(intent);
+        }
+    };*/
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,95 +41,13 @@ public class resultsDisplayPage extends ActionBarActivity {
         setContentView(R.layout.activity_results_display_page);
 
         Intent intent = getIntent();
-        groupID = intent.getStringExtra(ResultsPage.GROUP_ID);
+        groupID = intent.getStringExtra("groupID");
 
-        textView = (TextView) findViewById(R.id.WhatWhat);
+        likesButton = (Button) findViewById(R.id.likesButton);
+        commentsButton = (Button) findViewById(R.id.commentsButton);
 
-        likesMap = new HashMap<>();
-        likesMap = new HashMap<>();
-
-        getFeed();
-
-        StringBuilder sb = new StringBuilder();
-        for (Map.Entry<String, Integer> entry : likesMap.entrySet()) {
-            sb.append(entry.getKey()).append(" ").append(entry.getValue());
-        }
-        textView.setText(sb.toString());
-    }
-
-    private void getFeed() {
-        try {
-            Bundle parameters = new Bundle();
-            parameters.putString("limit", "100");
-            parameters.putString("since", "1");
-
-            new Request(Session.getActiveSession(), (groupID + "/feed"), parameters, HttpMethod.GET, new Request.Callback() {
-                @Override
-                public void onCompleted(Response response) {
-                    if (response != null) {
-                        processResponse(response);
-
-
-                    }
-                }
-            }).executeAsync().get();
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
-    }
-
-    private void processResponse(Response response) {
-        GraphObject allDataGraphObject = response.getGraphObject();
-        if (allDataGraphObject != null) {
-            try {
-                JSONObject allData = allDataGraphObject.getInnerJSONObject();
-                JSONArray listOfPosts = allData.getJSONArray("data");
-                for (int postNum = 0; postNum < listOfPosts.length(); postNum++) {
-                    JSONObject currentPost = listOfPosts.getJSONObject(postNum);
-                    getData(currentPost);
-                }
-
-                Request next = response.getRequestForPagedResults(Response.PagingDirection.NEXT);
-                if (next != null) {
-                    next.setCallback(new Request.Callback() {
-                        @Override
-                        public void onCompleted(Response newresponse) {
-                            if (newresponse != null)
-                                processResponse(newresponse);
-                        }
-                    });
-                    next.executeAsync().get();
-                }
-            } catch (JSONException | InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    private void getData(JSONObject currentPost) {
-        getField(currentPost, "likes", likesMap);
-        getField(currentPost, "comments", commentsMap);
-    }
-
-    private void getField(JSONObject currentPost, String field, HashMap<String, Integer> map) {
-        try {
-            JSONObject currentField = currentPost.getJSONObject(field);
-            if (currentField != null) {
-                JSONArray currentArray = currentField.getJSONArray("data");
-
-                for (int numPerson = 0; numPerson < currentArray.length(); numPerson++) {
-                    JSONObject person = currentArray.getJSONObject(numPerson);
-                    String personName = person.get("name").toString();
-
-                    if (map.get(personName) == null)
-                        map.put(personName, 1);
-                    else
-                        map.put(personName, map.get(personName) + 1);
-                }
-            }
-        } catch (JSONException ignored) {
-
-        }
+        likesButton.setOnClickListener(likesListener);
+        //commentsButton.setOnClickListener(commentsListener);
     }
 
     @Override

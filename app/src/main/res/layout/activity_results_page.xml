@@ -2,18 +2,17 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context="com.me.shubham.groupsstats.ResultsPage">
-
+    tools:context="com.me.shubham.groupsstats.GroupsDisplayPage">
 
     <ScrollView
+        android:id="@+id/scrollView"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/scrollView" >
+        android:layout_height="match_parent">
 
         <TableLayout
+            android:id="@+id/tableLayout"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:stretchColumns="yes"
-            android:id="@+id/tableLayout"/>
+            android:stretchColumns="yes" />
     </ScrollView>
 </RelativeLayout>
