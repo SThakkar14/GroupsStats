@@ -39,6 +39,10 @@
             android:name=".LikesOutput"
             android:label="@string/title_activity_likes_output" >
         </activity>
+        <activity
+            android:name=".CommentsOutput"
+            android:label="@string/title_activity_comments_output" >
+        </activity>
     </application>
 
 </manifest>

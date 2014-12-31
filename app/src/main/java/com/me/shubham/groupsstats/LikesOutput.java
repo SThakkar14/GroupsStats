@@ -24,7 +24,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.ExecutionException;
 
 public class LikesOutput extends ActionBarActivity {
     String groupID;
@@ -50,46 +49,36 @@ public class LikesOutput extends ActionBarActivity {
     }
 
     private void getFeed() {
-        try {
-            Bundle parameters = new Bundle();
-            parameters.putString("limit", "100");
-            parameters.putString("since", "1");
-            parameters.putString("fields", field);
-            System.out.println(field);
+        Bundle parameters = new Bundle();
+        parameters.putString("limit", "100");
+        parameters.putString("since", "1");
+        parameters.putString("fields", field);
 
-            new Request(Session.getActiveSession(), (groupID + "/feed"), parameters, HttpMethod.GET, new Request.Callback() {
-                @Override
-                public void onCompleted(Response response) {
-                    if (response != null) {
-                        processResponse(response);
-                        getNextResponse(response);
-                    }
+        new Request(Session.getActiveSession(), (groupID + "/feed"), parameters, HttpMethod.GET, new Request.Callback() {
+            @Override
+            public void onCompleted(Response response) {
+                if (response != null) {
+                    processResponse(response);
+                    getNextResponse(response);
                 }
-            }).executeAsync().get();
-        } catch (InterruptedException | ExecutionException e) {
-            e.printStackTrace();
-        }
+            }
+        }).executeAsync();
     }
 
     private void getNextResponse(Response response) {
         Request next = response.getRequestForPagedResults(Response.PagingDirection.NEXT);
         if (next != null) {
-            try {
-                next.setCallback(new Request.Callback() {
-                    @Override
-                    public void onCompleted(Response newResponse) {
-                        if (newResponse != null) {
-                            processResponse(newResponse);
-                            getNextResponse(newResponse);
-                        }
+            next.setCallback(new Request.Callback() {
+                @Override
+                public void onCompleted(Response newResponse) {
+                    if (newResponse != null) {
+                        processResponse(newResponse);
+                        getNextResponse(newResponse);
                     }
-                });
-                next.executeAsync().get();
-            } catch (InterruptedException | ExecutionException e) {
-                e.printStackTrace();
-            }
+                }
+            });
+            next.executeAsync();
         } else {
-
             sortHashMap();
         }
     }
@@ -101,13 +90,13 @@ public class LikesOutput extends ActionBarActivity {
         Collections.sort(list, new Comparator<Map.Entry<String, Integer>>() {
             @Override
             public int compare(Map.Entry<String, Integer> lhs, Map.Entry<String, Integer> rhs) {
-                return rhs.getValue()-lhs.getValue();
+                return rhs.getValue() - lhs.getValue();
             }
         });
 
         loadingDialog.setMessage("Displaying List...");
         StringBuilder sb = new StringBuilder();
-        for(Map.Entry<String, Integer> entry: list){
+        for (Map.Entry<String, Integer> entry : list) {
             sb.append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
         }
         TextView textView = (TextView) findViewById(R.id.TestingLikes);

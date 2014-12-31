@@ -1,9 +1,9 @@
 package com.me.shubham.groupsstats;
 
-import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
+import android.support.v7.app.ActionBarActivity;
 
 import com.facebook.AppEventsLogger;
 import com.facebook.Session;
@@ -13,7 +13,7 @@ import com.facebook.widget.LoginButton;
 
 import java.util.Arrays;
 
-public class LoginPage extends Activity {
+public class LoginPage extends ActionBarActivity {
 
     private Session.StatusCallback callback = new Session.StatusCallback() {
         @Override

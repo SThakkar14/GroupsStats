@@ -25,15 +25,15 @@ public class resultsDisplayPage extends ActionBarActivity {
         }
     };
 
-    /*private View.OnClickListener commentsListener = new View.OnClickListener() {
+    private View.OnClickListener commentsListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
             Intent intent = new Intent(resultsDisplayPage.this, CommentsOutput.class);
             intent.putExtra("groupID", groupID);
-            intent.putExtra("fields", "comments");
+            intent.putExtra("fields", "from");
             startActivity(intent);
         }
-    };*/
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,10 +44,10 @@ public class resultsDisplayPage extends ActionBarActivity {
         groupID = intent.getStringExtra("groupID");
 
         likesButton = (Button) findViewById(R.id.likesButton);
-        commentsButton = (Button) findViewById(R.id.commentsButton);
+        commentsButton = (Button) findViewById(R.id.PostsButton);
 
         likesButton.setOnClickListener(likesListener);
-        //commentsButton.setOnClickListener(commentsListener);
+        commentsButton.setOnClickListener(commentsListener);
     }
 
     @Override
