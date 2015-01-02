@@ -1,5 +1,6 @@
 package com.me.shubham.groupsstats;
 
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
@@ -28,8 +29,8 @@ import java.util.Map;
 
 /*NOTE
 * This job could theoretically be done by using paging and was initially done using this method.
-* (This involves creating a feed with the parameter 'since' 1, reading all the posts on the current page,
-* and simply calling: response.getRequestForPagedResults(Response.PagingDirection.NEXT)).
+* (This involves creating a feed with the parameter 'since' = '1', reading all the posts on the
+* current page, and simply calling: response.getRequestForPagedResults(Response.PagingDirection.NEXT)).
 *
 * This method is not current used because the Facebook Graph Explorer is not accurate with this.
 * With a bit of debugging, I was able to go ~1 year back in a group of mine using this method and
@@ -52,28 +53,42 @@ import java.util.Map;
 *
 * Instead, this repeatedly creates new request which seems to remove most of the problems although I
 * worry about a VERY large group and how the 100 post request will be handled. Because I need an end
-* date, I picked 2006. This is just seemed far back enough for me but this is only for me.
+* date, I initially picked 2006 as an arbitrary limit. I changed this when I noticed that while the
+* middle portion of the response is very inaccurate, the ending and beginning are very accurate (????)
+* so I get the last date using paging. This is to ensure any posts made before 2006 are included. The
+* performance difference between this and using 2006 is not clear and the variation between groups is
+* something I need to test.
 *
 * If Facebook fixes their feed issues, I will switch the code over to the more efficient way said earlier.
 * */
 
 public class CommentsOutput extends ActionBarActivity {
 
-    //Number of seconds between the 'since' and 'until parameter'
+    //Number of seconds between the 'since' and 'until' parameter
     //Currently set to two weeks
     private static final long SEARCH_INTERVAL = 1209600;
 
-    //Only posts whose 'updated_time' is after this will be considered
-    //This is an arbitrary date. See the note before the class
-    //Currently set to 2006
-    private static final long LAST_DATE = 1136073600;
-
-
+    //ID of the group passed by the intent
     String groupID;
-    HashMap<String, Integer> fieldsMap;
-    TextView textView;
+
+    //Determines which results the user wants
+    //0 = People who have posted the most
+    //1 = People who have the most liked posts
+    int inputChoice;
+
+    //Stores the results of processing the feed
+    //This is what is displayed
+    HashMap<String, Integer> resultsMap;
+
+    //Temporary TextView to output the results
+    TextView testingOutputTextView;
+
+    //Temporary Dialog to show loading. To be replaced
+    ProgressDialog loadingDialog;
+
+    //Read names
     private long unixTimeOfLatestPost;
-    //ProgressDialog loadingDialog;
+    private long unixTimeOfLastPost;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -81,36 +96,47 @@ public class CommentsOutput extends ActionBarActivity {
         setContentView(R.layout.activity_comments_output);
 
         Intent intent = getIntent();
+        inputChoice = intent.getIntExtra("inputChoice", -1);
         groupID = intent.getStringExtra("groupID");
-        fieldsMap = new HashMap<>();
 
-        textView = (TextView) findViewById(R.id.CommentsTesting);
+        testingOutputTextView = (TextView) findViewById(R.id.testingOutputTextView);
 
-        //loadingDialog = new ProgressDialog(CommentsOutput.this);
-        //loadingDialog.setMessage("Getting Posts...");
-        //loadingDialog.show();
+        //If something horribly HORRIBLY long (or a little wrong)
+        if (inputChoice == -1 || groupID == null)
+            testingOutputTextView.setText("Error: Input Choice: " + inputChoice + ",  groupID: " + groupID);
+        else {
+            resultsMap = new HashMap<>();
 
-        getLatestPostUnixTime();
+            loadingDialog = new ProgressDialog(CommentsOutput.this);
+            loadingDialog.setMessage("Getting Posts...");
+            loadingDialog.show();
+
+            getLatestPostUnixTime();
+        }
     }
 
     private void getLatestPostUnixTime() {
 
-
         Bundle parameters = new Bundle();
-        parameters.putString("limit", "100");
-        parameters.putString("since", "1");
-        parameters.putString("fields", "from");
+        parameters.putString("limit", "1000"); //Get 1000 posts because I'm getting the last post as well
+        parameters.putString("since", "1"); //To ensure I get all posts (see note)
+        parameters.putString("fields", "updated_time"); //All I care about is time updated
 
         new Request(Session.getActiveSession(), groupID + "/feed", parameters, HttpMethod.GET, new Request.Callback() {
             @Override
             public void onCompleted(Response response) {
                 GraphObject allGraphObject = response.getGraphObject();
-                if (allGraphObject != null) {
+                if (allGraphObject != null) {//If null, there is something wrong with the request
                     try {
-                        JSONObject post = allGraphObject.getInnerJSONObject().getJSONArray("data").getJSONObject(0);
-                        String updatedTime = post.get("updated_time").toString();
-                        unixTimeOfLatestPost = getTime(updatedTime);
-                        getFeed(unixTimeOfLatestPost, true);
+                        JSONArray posts = allGraphObject.getInnerJSONObject().getJSONArray("data");
+                        if (posts.length() == 0)
+                            testingOutputTextView.setText("Your group has no posts...");
+                        else {
+                            JSONObject firstPost = posts.getJSONObject(0);
+                            String updatedTime = firstPost.get("updated_time").toString();
+                            unixTimeOfLatestPost = getTime(updatedTime);//Converts ISO 8601 to unix
+                            getLastPostUnixTime(response);
+                        }
                     } catch (JSONException e) {
                         e.printStackTrace();
                     }
@@ -119,22 +145,54 @@ public class CommentsOutput extends ActionBarActivity {
         }).executeAsync();
     }
 
-    private void getFeed(final long upperLimit, final boolean isFirst) {
-        //textView.setText(String.valueOf(upperLimit));
-        if (upperLimit > LAST_DATE) {
+    private void getLastPostUnixTime(Response response) {
+        GraphObject allGraphObject = response.getGraphObject();
+        if (allGraphObject != null) {
+            try {
+                JSONArray posts = allGraphObject.getInnerJSONObject().getJSONArray("data");
+                if (posts.length() != 0) {
+                    String latestPostUpdatedTime = posts.getJSONObject(posts.length() - 1).get("updated_time").toString();
+                    unixTimeOfLastPost = getTime(latestPostUpdatedTime);
+                }
+            } catch (JSONException e) {
+                e.printStackTrace();
+            }
+        }
+        Request next = response.getRequestForPagedResults(Response.PagingDirection.NEXT);
+        if (next != null) {
+            next.setCallback(new Request.Callback() {
+                @Override
+                public void onCompleted(Response response) {
+                    getLastPostUnixTime(response);
+                }
+            });
+            next.executeAsync();
+        } else//If you've read the last post
+            //Request for posts starting at the time of the first post and DO read the first post
+            getFeed(unixTimeOfLatestPost, true);
+    }
+
+    private void getFeed(final long upperLimit, final boolean processFirstPost) {
+        if (upperLimit >= unixTimeOfLastPost) {//make sure you haven't exceed the last post
             final long lowerLimit = upperLimit - SEARCH_INTERVAL;
 
             Bundle parameters = new Bundle();
-            parameters.putString("limit", "100");
+            parameters.putString("limit", "100");//Not higher because the feed is unreliable. Testing?
             parameters.putString("since", String.valueOf(lowerLimit));
             parameters.putString("until", String.valueOf(upperLimit));
-            parameters.putString("fields", "from");
+
+            //Inclusion of 'from' loads an object with 'name' and 'id' of the poster
+            //Inclusion of 'likes' loads an object with an array which holds an 'id' and a 'name' of the liker
+            if (inputChoice == 1)
+                parameters.putString("fields", "from, likes");
+            else
+                parameters.putString("fields", "from");
 
             new Request(Session.getActiveSession(), (groupID) + "/feed", parameters, HttpMethod.GET, new Request.Callback() {
                 @Override
                 public void onCompleted(Response response) {
-                    processFeed(isFirst, response);
-                    getNextResponse(response, upperLimit, lowerLimit);
+                    processFeed(processFirstPost, response);
+                    getNextResponse(response, upperLimit);
                 }
             }).executeAsync();
         } else {
@@ -142,12 +200,12 @@ public class CommentsOutput extends ActionBarActivity {
         }
     }
 
-    private void processFeed(boolean isFirst, Response response) {
+    private void processFeed(boolean processFirstPost, Response response) {
         GraphObject allDataGraphObject = response.getGraphObject();
         if (allDataGraphObject != null) {
             try {
                 JSONArray listOfPosts = allDataGraphObject.getInnerJSONObject().getJSONArray("data");
-                for (int numPost = isFirst ? 0 : 1; numPost < listOfPosts.length(); numPost++) {
+                for (int numPost = processFirstPost ? 0 : 1; numPost < listOfPosts.length(); numPost++) {
                     JSONObject currentPost = listOfPosts.getJSONObject(numPost);
                     addToMap(currentPost);
                 }
@@ -157,20 +215,20 @@ public class CommentsOutput extends ActionBarActivity {
         }
     }
 
-    private void getNextResponse(Response response, long oldUpperLimit, long oldLowerLimit) {
+    private void getNextResponse(Response response, long oldUpperLimit) {
         GraphObject allDataGraphObject = response.getGraphObject();
         if (allDataGraphObject != null) {
             try {
+                long oldLowerLimit = oldUpperLimit-SEARCH_INTERVAL;
                 JSONArray listOfPosts = allDataGraphObject.getInnerJSONObject().getJSONArray("data");
                 int length = listOfPosts.length();
                 if (length == 0)
-                    getFeed(oldLowerLimit, false);
+                    getFeed(oldLowerLimit, true);
                 else {
                     String lastPostTime = listOfPosts.getJSONObject(listOfPosts.length() - 1).get("updated_time").toString();
                     long lastPostUnixTime = getTime(lastPostTime);
-                    textView.setText(lastPostTime + "\n");
                     if (length == 1 && lastPostUnixTime == oldUpperLimit)
-                        getFeed(oldLowerLimit, false);
+                        getFeed(oldLowerLimit, true);
                     else
                         getFeed(lastPostUnixTime, false);
                 }
@@ -183,18 +241,28 @@ public class CommentsOutput extends ActionBarActivity {
     private void addToMap(JSONObject currentPost) {
         try {
             String currentPerson = currentPost.getJSONObject("from").get("name").toString();
-            Integer numTimes = fieldsMap.get(currentPerson);
-            if (numTimes == null)
-                fieldsMap.put(currentPerson, 1);
-            else
-                fieldsMap.put(currentPerson, numTimes + 1);
+            Integer numTimes = resultsMap.get(currentPerson);
+            int numberToPut = 1;
+
+            if (inputChoice == 1) {
+                if (currentPost.has("likes"))
+                    numberToPut = currentPost.getJSONObject("likes").getJSONArray("data").length();
+                else
+                    numberToPut = -1;
+            }
+            if (numberToPut > 0) {
+                if (numTimes == null)
+                    resultsMap.put(currentPerson, numberToPut);
+                else
+                    resultsMap.put(currentPerson, numTimes + numberToPut);
+            }
         } catch (JSONException e) {
             e.printStackTrace();
         }
     }
 
     private void publishResults() {
-        List<Map.Entry<String, Integer>> list = new ArrayList<>(fieldsMap.entrySet());
+        List<Map.Entry<String, Integer>> list = new ArrayList<>(resultsMap.entrySet());
 
         Collections.sort(list, new Comparator<Map.Entry<String, Integer>>() {
             @Override
@@ -208,7 +276,7 @@ public class CommentsOutput extends ActionBarActivity {
             sb.append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
         }
 
-        textView.setText(sb.toString());
+        testingOutputTextView.setText(sb.toString());
     }
 
     private long getTime(String time) {
