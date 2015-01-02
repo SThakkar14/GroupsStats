@@ -18,10 +18,9 @@ public class resultsDisplayPage extends ActionBarActivity {
     private View.OnClickListener likesListener = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-            Intent intent = new Intent(resultsDisplayPage.this, CommentsOutput.class);
+            Intent intent = new Intent(resultsDisplayPage.this, LikesOutput.class);
             intent.putExtra("groupID", groupID);
             intent.putExtra("fields", "likes");
-            intent.putExtra("inputChoice", 1);
             startActivity(intent);
         }
     };
@@ -32,7 +31,6 @@ public class resultsDisplayPage extends ActionBarActivity {
             Intent intent = new Intent(resultsDisplayPage.this, CommentsOutput.class);
             intent.putExtra("groupID", groupID);
             intent.putExtra("fields", "from");
-            intent.putExtra("inputChoice", 0);
             startActivity(intent);
         }
     };

@@ -48,10 +48,6 @@ public class LikesOutput extends ActionBarActivity {
         getFeed();
     }
 
-
-
-
-
     private void getFeed() {
         Bundle parameters = new Bundle();
         parameters.putString("limit", "100");

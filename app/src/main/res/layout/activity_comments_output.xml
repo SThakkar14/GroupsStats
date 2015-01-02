@@ -9,14 +9,15 @@
     tools:context="com.me.shubham.groupsstats.CommentsOutput">
 
     <ScrollView
-        android:id="@+id/scrollView4"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:id="@+id/scrollView4" >
 
         <TextView
-            android:id="@+id/testingOutputTextView"
+            android:id="@+id/CommentsTesting"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content" />
+            android:layout_height="wrap_content"
+            android:text="@string/hello_world" />
     </ScrollView>
 
 </RelativeLayout>
