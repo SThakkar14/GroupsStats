@@ -173,6 +173,7 @@ public class CommentsOutput extends ActionBarActivity {
     }
 
     private void getFeed(final long upperLimit, final boolean processFirstPost) {
+        testingOutputTextView.setText(String.valueOf(upperLimit));
         if (upperLimit >= unixTimeOfLastPost) {//make sure you haven't exceed the last post
             final long lowerLimit = upperLimit - SEARCH_INTERVAL;
 
@@ -184,13 +185,14 @@ public class CommentsOutput extends ActionBarActivity {
             //Inclusion of 'from' loads an object with 'name' and 'id' of the poster
             //Inclusion of 'likes' loads an object with an array which holds an 'id' and a 'name' of the liker
             if (inputChoice == 1)
-                parameters.putString("fields", "from, likes");
+                parameters.putString("fields", "from, likes.summary(true)");
             else
                 parameters.putString("fields", "from");
 
             new Request(Session.getActiveSession(), (groupID) + "/feed", parameters, HttpMethod.GET, new Request.Callback() {
                 @Override
                 public void onCompleted(Response response) {
+                    //testingOutputTextView.setText(response.toString());
                     processFeed(processFirstPost, response);
                     getNextResponse(response, upperLimit);
                 }
@@ -219,7 +221,7 @@ public class CommentsOutput extends ActionBarActivity {
         GraphObject allDataGraphObject = response.getGraphObject();
         if (allDataGraphObject != null) {
             try {
-                long oldLowerLimit = oldUpperLimit-SEARCH_INTERVAL;
+                long oldLowerLimit = oldUpperLimit - SEARCH_INTERVAL;
                 JSONArray listOfPosts = allDataGraphObject.getInnerJSONObject().getJSONArray("data");
                 int length = listOfPosts.length();
                 if (length == 0)
@@ -238,27 +240,43 @@ public class CommentsOutput extends ActionBarActivity {
         }
     }
 
-    private void addToMap(JSONObject currentPost) {
+    private void addPostsToMap(JSONObject currentPost) {
         try {
             String currentPerson = currentPost.getJSONObject("from").get("name").toString();
             Integer numTimes = resultsMap.get(currentPerson);
-            int numberToPut = 1;
 
-            if (inputChoice == 1) {
-                if (currentPost.has("likes"))
-                    numberToPut = currentPost.getJSONObject("likes").getJSONArray("data").length();
-                else
-                    numberToPut = -1;
-            }
-            if (numberToPut > 0) {
+            if (numTimes == null)
+                resultsMap.put(currentPerson, 1);
+            else
+                resultsMap.put(currentPerson, numTimes + 1);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void addLikesToMap(JSONObject currentPost) {
+        try {
+            String currentPerson = currentPost.getJSONObject("from").get("name").toString();
+            Integer numTimes = resultsMap.get(currentPerson);
+
+            if (currentPost.has("likes")) {
+                Integer total_count = (Integer) currentPost.getJSONObject("likes").getJSONObject("summary").get("total_count");
+
                 if (numTimes == null)
-                    resultsMap.put(currentPerson, numberToPut);
+                    resultsMap.put(currentPerson, total_count);
                 else
-                    resultsMap.put(currentPerson, numTimes + numberToPut);
+                    resultsMap.put(currentPerson, numTimes + total_count);
             }
         } catch (JSONException e) {
             e.printStackTrace();
         }
+    }
+
+    private void addToMap(JSONObject currentPost) {
+        if (inputChoice == 0)
+            addPostsToMap(currentPost);
+        else if (inputChoice == 1)
+            addLikesToMap(currentPost);
     }
 
     private void publishResults() {
