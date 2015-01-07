@@ -1,48 +1,28 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.me.shubham.groupsstats" >
+    package="com.example.shubham.groupsthing">
 
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.INTERNET" />
 
     <application
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme" >
+
+        android:theme="@style/AppTheme">
         <activity
-            android:name=".LoginPage"
-            android:label="@string/app_name" >
+            android:name="com.example.shubham.groupsthing.ResultsPage"
+            android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity
-            android:name="com.facebook.LoginActivity"
-            android:label="@string/app_name"
-            android:theme="@android:style/Theme.Translucent.NoTitleBar" />
-
         <meta-data
             android:name="com.facebook.sdk.ApplicationId"
-            android:value="@string/facebook_app_id" />
-
-        <activity
-            android:name=".GroupsDisplayPage"
-            android:label="@string/title_activity_results_page" >
-        </activity>
-        <activity
-            android:name=".resultsDisplayPage"
-            android:label="@string/title_activity_results_display_page" >
-        </activity>
-        <activity
-            android:name=".LikesOutput"
-            android:label="@string/title_activity_likes_output" >
-        </activity>
-        <activity
-            android:name=".CommentsOutput"
-            android:label="@string/title_activity_comments_output" >
-        </activity>
+            android:value="@string/app_id" />
+        <activity android:name="com.facebook.LoginActivity" />
     </application>
 
 </manifest>
