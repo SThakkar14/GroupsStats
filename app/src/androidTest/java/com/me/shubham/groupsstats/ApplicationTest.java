@@ -1,4 +1,4 @@
-package com.example.shubham.groupsthing;
+package com.me.shubham.groupsstats;
 
 import android.app.Application;
 import android.test.ApplicationTestCase;
