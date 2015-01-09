@@ -48,10 +48,6 @@ public class LikesOutput extends ActionBarActivity {
         getFeed();
     }
 
-
-
-
-
     private void getFeed() {
         Bundle parameters = new Bundle();
         parameters.putString("limit", "100");
@@ -82,9 +78,8 @@ public class LikesOutput extends ActionBarActivity {
                 }
             });
             next.executeAsync();
-        } else {
+        } else
             sortHashMap();
-        }
     }
 
     private void sortHashMap() {

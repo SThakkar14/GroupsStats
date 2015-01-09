@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
 
-    <string name="app_name">GroupsStats</string>
+    <string name="app_name">Groups Stats</string>
     <string name="action_settings">Settings</string>
     <string name="facebook_app_id">890566747633734</string>
     <string name="title_activity_results_page">ResultsPage</string>
@@ -11,5 +11,7 @@
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="title_activity_comments_output">CommentsOutput</string>
     <string name="title_activity_likes_output">LikesOutput</string>
+    <string name="title_activity_login_page">LoginPage</string>
+    <string name="app_description">Analyze Your Groups</string>
 
 </resources>

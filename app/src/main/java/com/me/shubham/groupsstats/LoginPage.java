@@ -1,9 +1,9 @@
 package com.me.shubham.groupsstats;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
-import android.support.v7.app.ActionBarActivity;
 
 import com.facebook.AppEventsLogger;
 import com.facebook.Session;
@@ -13,7 +13,7 @@ import com.facebook.widget.LoginButton;
 
 import java.util.Arrays;
 
-public class LoginPage extends ActionBarActivity {
+public class LoginPage extends Activity {
 
     private Session.StatusCallback callback = new Session.StatusCallback() {
         @Override
@@ -30,13 +30,13 @@ public class LoginPage extends ActionBarActivity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_login_page);
 
         uiLifecycleHelper = new UiLifecycleHelper(this, callback);
         uiLifecycleHelper.onCreate(savedInstanceState);
 
         LoginButton loginButton = (LoginButton) findViewById(R.id.login_button);
-        loginButton.setReadPermissions(Arrays.asList("user_groups", "user_about_me"));
+        loginButton.setReadPermissions(Arrays.asList("user_groups"));
     }
 
     @Override

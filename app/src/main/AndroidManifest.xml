@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.me.shubham.groupsstats" >
+    package="com.me.shubham.groupsstats">
 
     <uses-permission android:name="android.permission.INTERNET" />
 
@@ -8,13 +8,12 @@
         android:allowBackup="true"
         android:icon="@drawable/ic_launcher"
         android:label="@string/app_name"
-        android:theme="@style/AppTheme" >
+        android:theme="@style/AppTheme">
         <activity
-            android:name=".LoginPage"
-            android:label="@string/app_name" >
+            android:name="com.me.shubham.groupsstats.LoginPage"
+            android:label="@string/app_name">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
@@ -29,20 +28,16 @@
 
         <activity
             android:name=".GroupsDisplayPage"
-            android:label="@string/title_activity_results_page" >
-        </activity>
+            android:label="@string/title_activity_results_page" />
         <activity
             android:name=".resultsDisplayPage"
-            android:label="@string/title_activity_results_display_page" >
-        </activity>
+            android:label="@string/title_activity_results_display_page" />
         <activity
             android:name=".LikesOutput"
-            android:label="@string/title_activity_likes_output" >
-        </activity>
+            android:label="@string/title_activity_likes_output" />
         <activity
             android:name=".CommentsOutput"
-            android:label="@string/title_activity_comments_output" >
-        </activity>
+            android:label="@string/title_activity_comments_output" />
     </application>
 
 </manifest>
