@@ -15,16 +15,6 @@ import java.util.Arrays;
 
 public class LoginPage extends Activity {
 
-    private Session.StatusCallback callback = new Session.StatusCallback() {
-        @Override
-        public void call(Session session, SessionState sessionState, Exception e) {
-            if (session != null && sessionState.isOpened()) {
-                Intent intent = new Intent(LoginPage.this, GroupsDisplayPage.class);
-                startActivity(intent);
-                finish();
-            }
-        }
-    };
     private UiLifecycleHelper uiLifecycleHelper;
 
     @Override
@@ -32,17 +22,31 @@ public class LoginPage extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_login_page);
 
-        uiLifecycleHelper = new UiLifecycleHelper(this, callback);
+        uiLifecycleHelper = new UiLifecycleHelper(this, new Session.StatusCallback() {
+            @Override
+            public void call(Session session, SessionState sessionState, Exception e) {
+                openGroupsDisplayPage(session);
+            }
+        });
         uiLifecycleHelper.onCreate(savedInstanceState);
 
         LoginButton loginButton = (LoginButton) findViewById(R.id.login_button);
         loginButton.setReadPermissions(Arrays.asList("user_groups"));
     }
 
+    private void openGroupsDisplayPage(Session session) {
+        if (session != null && session.isOpened()) {
+            startActivity(new Intent(LoginPage.this, GroupsDisplayPage.class));
+            finish();
+        }
+    }
+
     @Override
     protected void onResume() {
         super.onResume();
         uiLifecycleHelper.onResume();
+
+        openGroupsDisplayPage(Session.getActiveSession());
 
         // Logs 'install' and 'app activate' App Events.
         AppEventsLogger.activateApp(this);
@@ -73,6 +77,10 @@ public class LoginPage extends Activity {
     protected void onSaveInstanceState(@NonNull Bundle outState) {
         super.onSaveInstanceState(outState);
         uiLifecycleHelper.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onBackPressed() {
     }
 
 }

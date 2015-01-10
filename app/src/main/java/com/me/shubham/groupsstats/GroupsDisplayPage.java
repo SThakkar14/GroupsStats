@@ -32,6 +32,11 @@ public class GroupsDisplayPage extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_groups_display_page);
 
+        android.support.v7.app.ActionBar actionBar = getSupportActionBar();
+        actionBar.setHomeButtonEnabled(true);
+        actionBar.setDisplayHomeAsUpEnabled(true);
+        actionBar.setTitle("WhatWhat");
+
         loadingDialog = new ProgressDialog(GroupsDisplayPage.this);
         loadingDialog.setMessage("Getting Groups...");
         loadingDialog.show();
@@ -39,6 +44,7 @@ public class GroupsDisplayPage extends ActionBarActivity {
         getGroups();
     }
 
+    //Gets the first page of groups
     private void getGroups() {
         Bundle parameters = new Bundle();
         parameters.putString("fields", "id, name");
@@ -46,6 +52,7 @@ public class GroupsDisplayPage extends ActionBarActivity {
         new Request(Session.getActiveSession(), "/me/groups", parameters, HttpMethod.GET, new Request.Callback() {
             @Override
             public void onCompleted(Response response) {
+                //Creates buttons for each one and displays them
                 processResponse(response, true);
                 getNextPage(response);
             }
@@ -77,6 +84,7 @@ public class GroupsDisplayPage extends ActionBarActivity {
                 try {
                     JSONArray listOfGroups = innerObject.getJSONArray("data");
                     if (listOfGroups.length() == 0 && isFirstPage)
+                        //Just so there isn't an empty page facing the user
                         noGroups();
                     else {
                         for (int numGroup = 0; numGroup < listOfGroups.length(); numGroup++) {
@@ -119,6 +127,7 @@ public class GroupsDisplayPage extends ActionBarActivity {
             public void onClick(View v) {
                 String groupID = (String) v.getTag();
                 Intent intent = new Intent(GroupsDisplayPage.this, resultsDisplayPage.class);
+                //Facebook graph API relies on the ID rather than the name (For obvious reasons)
                 intent.putExtra("groupID", groupID);
                 startActivity(intent);
             }
@@ -133,17 +142,14 @@ public class GroupsDisplayPage extends ActionBarActivity {
     }
 
     @Override
+    //What to do if someone clicks the logout button
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+        Session.getActiveSession().closeAndClearTokenInformation();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
+        Intent intent = new Intent(GroupsDisplayPage.this, LoginPage.class);
+        startActivity(intent);
 
-        return super.onOptionsItemSelected(item);
+        return true;
     }
+
 }
