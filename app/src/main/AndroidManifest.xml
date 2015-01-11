@@ -30,9 +30,6 @@
             android:name=".GroupsDisplayPage"
             android:label="@string/title_activity_results_page" />
         <activity
-            android:name=".resultsDisplayPage"
-            android:label="@string/title_activity_results_display_page" />
-        <activity
             android:name=".LikesOutput"
             android:label="@string/title_activity_likes_output" />
         <activity

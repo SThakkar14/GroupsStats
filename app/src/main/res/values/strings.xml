@@ -14,5 +14,7 @@
     <string name="title_activity_likes_output">LikesOutput</string>
     <string name="title_activity_login_page">LoginPage</string>
     <string name="app_description">Analyze Your Groups</string>
+    <string name="most_posts">Most Posts</string>
+    <string name="most_posts_liked">Most Posts Liked</string>
 
 </resources>

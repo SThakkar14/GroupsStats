@@ -19,6 +19,7 @@ import com.facebook.Request;
 import com.facebook.Response;
 import com.facebook.Session;
 import com.facebook.model.GraphObject;
+import com.facebook.model.GraphUser;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -32,11 +33,20 @@ public class GroupsDisplayPage extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_groups_display_page);
 
-        android.support.v7.app.ActionBar actionBar = getSupportActionBar();
-        actionBar.setHomeButtonEnabled(true);
-        actionBar.setDisplayHomeAsUpEnabled(true);
-        actionBar.setTitle("WhatWhat");
+        //So the title isn't "GroupsDisplayPage"
+        getSupportActionBar().setTitle("Groups");
 
+        //Adds the first name of the user to the title
+        Request.newMeRequest(Session.getActiveSession(), new Request.GraphUserCallback() {
+            @Override
+            public void onCompleted(GraphUser graphUser, Response response) {
+                if (graphUser != null)
+                    getSupportActionBar().setTitle(graphUser.getFirstName() + "'s Groups");
+            }
+        }).executeAsync();
+
+        //Temporary Loading Screen
+        //Just a spinner because the number of groups is unknown
         loadingDialog = new ProgressDialog(GroupsDisplayPage.this);
         loadingDialog.setMessage("Getting Groups...");
         loadingDialog.show();
@@ -52,7 +62,6 @@ public class GroupsDisplayPage extends ActionBarActivity {
         new Request(Session.getActiveSession(), "/me/groups", parameters, HttpMethod.GET, new Request.Callback() {
             @Override
             public void onCompleted(Response response) {
-                //Creates buttons for each one and displays them
                 processResponse(response, true);
                 getNextPage(response);
             }
@@ -60,9 +69,9 @@ public class GroupsDisplayPage extends ActionBarActivity {
     }
 
     private void getNextPage(Response response) {
-        Request next = response.getRequestForPagedResults(Response.PagingDirection.NEXT);
-        if (next != null) {
-            next.setCallback(new Request.Callback() {
+        Request nextPage = response.getRequestForPagedResults(Response.PagingDirection.NEXT);
+        if (nextPage != null) {
+            nextPage.setCallback(new Request.Callback() {
                 @Override
                 public void onCompleted(Response newResponse) {
                     if (newResponse != null) {
@@ -71,11 +80,13 @@ public class GroupsDisplayPage extends ActionBarActivity {
                     }
                 }
             });
-            next.executeAsync();
+            nextPage.executeAsync();
         } else
+            //Done loading groups
             loadingDialog.dismiss();
     }
 
+    //Creates buttons for each one and displays them
     private void processResponse(Response response, boolean isFirstPage) {
         if (response != null) {
             GraphObject innerGraphObject = response.getGraphObject();
@@ -98,23 +109,24 @@ public class GroupsDisplayPage extends ActionBarActivity {
         }
     }
 
+    //Alerts the user they aren't part of any groups
     private void noGroups() {
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
-        builder.setTitle("Whoops...");
-        builder.setMessage("You don't have any groups");
-        builder.setCancelable(false);
-        builder.setNegativeButton("FIRE ZE MISSILES!", new DialogInterface.OnClickListener() {
-            @Override
-            public void onClick(DialogInterface dialog, int which) {
-                dialog.cancel();
-            }
-        });
-        AlertDialog alert = builder.create();
-        alert.show();
+        builder.setTitle("Whoops...")
+                .setMessage("You don't have any groups")
+                .setCancelable(false)
+                .setNegativeButton("FIRE ZE MISSILES!", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.cancel();
+                    }
+                });
+        builder.create().show();
     }
 
+    //Creates and adds the button to the layout
     private void createButton(String groupName, String groupID) {
-        Button groupNameButton = new Button(this);
+        final Button groupNameButton = new Button(this);
         groupNameButton.setText(groupName);
         groupNameButton.setTag(groupID);
 
@@ -125,19 +137,41 @@ public class GroupsDisplayPage extends ActionBarActivity {
         groupNameButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String groupID = (String) v.getTag();
-                Intent intent = new Intent(GroupsDisplayPage.this, resultsDisplayPage.class);
-                //Facebook graph API relies on the ID rather than the name (For obvious reasons)
+                createDialog(groupNameButton);
+            }
+        });
+    }
+
+    //Further selection menu to pick what exactly to show
+    private void createDialog(final Button button) {
+        String[] options = {"Most posts", "Most liked posts"};
+        final String groupID = (String) button.getTag();
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this)
+                .setTitle("Pick an option")
+                .setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        dialog.dismiss();
+                    }
+                });
+
+        builder.setItems(options, new DialogInterface.OnClickListener() {
+            @Override
+            public void onClick(DialogInterface dialog, int which) {
+                Intent intent = new Intent(GroupsDisplayPage.this, CommentsOutput.class);
                 intent.putExtra("groupID", groupID);
+                intent.putExtra("inputChoice", which);
                 startActivity(intent);
             }
         });
+        builder.create().show();
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_results_page, menu);
+        getMenuInflater().inflate(R.menu.menu_groups_display_page, menu);
         return true;
     }
 
