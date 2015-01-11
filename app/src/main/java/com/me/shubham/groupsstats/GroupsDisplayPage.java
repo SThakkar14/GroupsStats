@@ -159,7 +159,7 @@ public class GroupsDisplayPage extends ActionBarActivity {
         builder.setItems(options, new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
-                Intent intent = new Intent(GroupsDisplayPage.this, CommentsOutput.class);
+                Intent intent = new Intent(GroupsDisplayPage.this, ResultsOutput.class);
                 intent.putExtra("groupID", groupID);
                 intent.putExtra("inputChoice", which);
                 startActivity(intent);

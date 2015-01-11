@@ -62,7 +62,7 @@ import java.util.Map;
 * If Facebook fixes their feed issues, I will switch the code over to the more efficient way said earlier.
 * */
 
-public class CommentsOutput extends ActionBarActivity {
+public class ResultsOutput extends ActionBarActivity {
 
     //Number of seconds between the 'since' and 'until' parameter
     //Currently set to two weeks
@@ -93,7 +93,7 @@ public class CommentsOutput extends ActionBarActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_comments_output);
+        setContentView(R.layout.activity_results_output);
 
         Intent intent = getIntent();
         inputChoice = intent.getIntExtra("inputChoice", -1);
@@ -107,7 +107,7 @@ public class CommentsOutput extends ActionBarActivity {
         else {
             resultsMap = new HashMap<>();
 
-            loadingDialog = new ProgressDialog(CommentsOutput.this);
+            loadingDialog = new ProgressDialog(ResultsOutput.this);
             loadingDialog.setMessage("Getting Posts...");
             loadingDialog.show();
 
@@ -198,6 +198,7 @@ public class CommentsOutput extends ActionBarActivity {
                 }
             }).executeAsync();
         } else {
+            loadingDialog.dismiss();
             publishResults();
         }
     }
@@ -310,22 +311,17 @@ public class CommentsOutput extends ActionBarActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_comments_output, menu);
+        getMenuInflater().inflate(R.menu.menu_likes_output, menu);
         return true;
     }
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
+        Session.getActiveSession().closeAndClearTokenInformation();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
+        Intent intent = new Intent(this, LoginPage.class);
+        startActivity(intent);
 
-        return super.onOptionsItemSelected(item);
+        return true;
     }
 }

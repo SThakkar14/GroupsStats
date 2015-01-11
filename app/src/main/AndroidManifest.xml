@@ -28,13 +28,10 @@
 
         <activity
             android:name=".GroupsDisplayPage"
-            android:label="@string/title_activity_results_page" />
+            android:label="@string/title_activity_groups_display_page" />
         <activity
-            android:name=".LikesOutput"
-            android:label="@string/title_activity_likes_output" />
-        <activity
-            android:name=".CommentsOutput"
-            android:label="@string/title_activity_comments_output" />
+            android:name=".ResultsOutput"
+            android:label="@string/title_activity_results_output" />
     </application>
 
 </manifest>
