@@ -126,6 +126,7 @@ public class GroupsDisplayPage extends ActionBarActivity {
 
     //Creates and adds the button to the layout
     private void createButton(String groupName, String groupID) {
+
         final Button groupNameButton = new Button(this);
         groupNameButton.setText(groupName);
         groupNameButton.setTag(groupID);
@@ -144,7 +145,7 @@ public class GroupsDisplayPage extends ActionBarActivity {
 
     //Further selection menu to pick what exactly to show
     private void createDialog(final Button button) {
-        String[] options = {"Most posts", "Most liked posts"};
+        String[] options = {"Most posts", "Most liked posters"};
         final String groupID = (String) button.getTag();
 
         AlertDialog.Builder builder = new AlertDialog.Builder(this)

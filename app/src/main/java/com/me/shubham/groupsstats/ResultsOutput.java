@@ -62,28 +62,34 @@ import java.util.Map;
 * If Facebook fixes their feed issues, I will switch the code over to the more efficient way said earlier.
 * */
 
+
 public class ResultsOutput extends ActionBarActivity {
+
 
     //Number of seconds between the 'since' and 'until' parameter
     //Currently set to two weeks
     private static final long SEARCH_INTERVAL = 1209600;
 
+
     //ID of the group passed by the intent
     String groupID;
+
 
     //Determines which results the user wants
     //0 = People who have posted the most
     //1 = People who have the most liked posts
     int inputChoice;
 
+
     //Stores the results of processing the feed
     //This is what is displayed
     HashMap<String, Integer> resultsMap;
 
+
     //Temporary TextView to output the results
     TextView testingOutputTextView;
 
-    //Temporary Dialog to show loading. To be replaced
+
     ProgressDialog loadingDialog;
 
     //Read names
@@ -99,7 +105,13 @@ public class ResultsOutput extends ActionBarActivity {
         inputChoice = intent.getIntExtra("inputChoice", -1);
         groupID = intent.getStringExtra("groupID");
 
+        if (inputChoice == 0)
+            getSupportActionBar().setTitle("Most posts");
+        else
+            getSupportActionBar().setTitle("Most liked posters");
+
         testingOutputTextView = (TextView) findViewById(R.id.testingOutputTextView);
+
 
         //If something horribly HORRIBLY long (or a little wrong)
         if (inputChoice == -1 || groupID == null)
@@ -116,17 +128,18 @@ public class ResultsOutput extends ActionBarActivity {
     }
 
     private void getLatestPostUnixTime() {
+        loadingDialog.setMessage("Getting First Post...");
 
         Bundle parameters = new Bundle();
-        parameters.putString("limit", "1000"); //Get 1000 posts because I'm getting the last post as well
-        parameters.putString("since", "1"); //To ensure I get all posts (see note)
-        parameters.putString("fields", "updated_time"); //All I care about is time updated
+        parameters.putString("limit", "1000");
+        parameters.putString("since", "1");
+        parameters.putString("fields", "updated_time");
 
         new Request(Session.getActiveSession(), groupID + "/feed", parameters, HttpMethod.GET, new Request.Callback() {
             @Override
             public void onCompleted(Response response) {
                 GraphObject allGraphObject = response.getGraphObject();
-                if (allGraphObject != null) {//If null, there is something wrong with the request
+                if (allGraphObject != null) {
                     try {
                         JSONArray posts = allGraphObject.getInnerJSONObject().getJSONArray("data");
                         if (posts.length() == 0)
@@ -134,7 +147,8 @@ public class ResultsOutput extends ActionBarActivity {
                         else {
                             JSONObject firstPost = posts.getJSONObject(0);
                             String updatedTime = firstPost.get("updated_time").toString();
-                            unixTimeOfLatestPost = getTime(updatedTime);//Converts ISO 8601 to unix
+                            unixTimeOfLatestPost = getTime(updatedTime);
+
                             getLastPostUnixTime(response);
                         }
                     } catch (JSONException e) {
@@ -145,7 +159,10 @@ public class ResultsOutput extends ActionBarActivity {
         }).executeAsync();
     }
 
+
     private void getLastPostUnixTime(Response response) {
+        loadingDialog.setMessage("Getting Last Post...");
+
         GraphObject allGraphObject = response.getGraphObject();
         if (allGraphObject != null) {
             try {
@@ -167,13 +184,16 @@ public class ResultsOutput extends ActionBarActivity {
                 }
             });
             next.executeAsync();
-        } else//If you've read the last post
+        } else {
             //Request for posts starting at the time of the first post and DO read the first post
+            loadingDialog.setMessage("Processing Posts...");
             getFeed(unixTimeOfLatestPost, true);
+        }
     }
 
+
     private void getFeed(final long upperLimit, final boolean processFirstPost) {
-        testingOutputTextView.setText(String.valueOf(upperLimit));
+
         if (upperLimit >= unixTimeOfLastPost) {//make sure you haven't exceed the last post
             final long lowerLimit = upperLimit - SEARCH_INTERVAL;
 
@@ -197,11 +217,10 @@ public class ResultsOutput extends ActionBarActivity {
                     getNextResponse(response, upperLimit);
                 }
             }).executeAsync();
-        } else {
-            loadingDialog.dismiss();
+        } else
             publishResults();
-        }
     }
+
 
     private void processFeed(boolean processFirstPost, Response response) {
         GraphObject allDataGraphObject = response.getGraphObject();
@@ -217,6 +236,7 @@ public class ResultsOutput extends ActionBarActivity {
             }
         }
     }
+
 
     private void getNextResponse(Response response, long oldUpperLimit) {
         GraphObject allDataGraphObject = response.getGraphObject();
@@ -240,6 +260,7 @@ public class ResultsOutput extends ActionBarActivity {
             }
         }
     }
+
 
     private void addPostsToMap(JSONObject currentPost) {
         try {
@@ -273,12 +294,14 @@ public class ResultsOutput extends ActionBarActivity {
         }
     }
 
+
     private void addToMap(JSONObject currentPost) {
         if (inputChoice == 0)
             addPostsToMap(currentPost);
         else if (inputChoice == 1)
             addLikesToMap(currentPost);
     }
+
 
     private void publishResults() {
         List<Map.Entry<String, Integer>> list = new ArrayList<>(resultsMap.entrySet());
@@ -291,12 +314,13 @@ public class ResultsOutput extends ActionBarActivity {
         });
 
         StringBuilder sb = new StringBuilder();
-        for (Map.Entry<String, Integer> entry : list) {
+        for (Map.Entry<String, Integer> entry : list)
             sb.append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
-        }
 
+        loadingDialog.dismiss();
         testingOutputTextView.setText(sb.toString());
     }
+
 
     private long getTime(String time) {
         try {
